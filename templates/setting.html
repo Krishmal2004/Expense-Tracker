@@ -169,7 +169,7 @@
         </main>
     </div>
 
-    <script src="/static/js/main.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         // Load user profile
         document.addEventListener('DOMContentLoaded', async () => {

@@ -196,8 +196,8 @@
         </main>
     </div>
 
-    <script src="/static/js/main.js"></script>
-    <script src="/static/js/charts.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
     <script>
         let comparisonChart, categoryBreakdownChart, trendChart;
 

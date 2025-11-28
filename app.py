@@ -212,9 +212,8 @@ def dashboard():
 
 @app.route("/profile")
 def profile():
-    if 'user_id' not in session:
-        return redirect(url_for('login_page'))
-    return render_template("profile.html")
+    # Redirect to settings page
+    return redirect(url_for('settings_page'))
 
 
 @app.route("/cards")

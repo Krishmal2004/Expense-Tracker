@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cards | Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <style>
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        .card-wrapper {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .card-details {
+            padding: 1.25rem;
+        }
+        .card-details-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .card-details-row:last-of-type {
+            border-bottom: none;
+        }
+        .card-details-row .label {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        .card-details-row .value {
+            font-weight: 500;
+        }
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .total-balance-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: 1.5rem;
+        }
+        .total-balance-card h3 {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+        .total-balance-card .amount {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="cardsLoader">
+        <div class="spinner spinner-lg"></div>
+    </div>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>ExpenseTracker</span>
+                </a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Menu</span>
+                    <a href="/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/add-expense" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Expense</span>
+                    </a>
+                    <a href="/cards" class="nav-link active">
+                        <i class="fas fa-credit-card"></i>
+                        <span>My Cards</span>
+                    </a>
+                    <a href="/reports" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Account</span>
+                    <a href="/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="nav-link logout" data-logout>
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title">
+                        <h1>My Cards</h1>
+                        <p>Manage your credit and debit cards</p>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <button class="btn btn-primary" id="addCardBtn">
+                        <i class="fas fa-plus"></i>
+                        Add Card
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Total Balance -->
+                <div class="total-balance-card">
+                    <h3><i class="fas fa-wallet"></i> Total Balance Across All Cards</h3>
+                    <div class="amount" id="totalBalance">$0.00</div>
+                </div>
+
+                <!-- Cards Container -->
+                <div id="cardsContainer">
+                    <!-- Cards will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Card Modal -->
+    <div class="modal-overlay" id="cardModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="cardModalTitle">Add New Card</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="cardForm">
+                    <div class="form-group">
+                        <label class="form-label required">Card Name</label>
+                        <input type="text" class="form-control" id="cardName" placeholder="e.g., Chase Visa" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Card Holder Name</label>
+                        <input type="text" class="form-control" id="cardHolderName" placeholder="Name on card">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label required">Card Number</label>
+                        <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label required">Expiry Date</label>
+                                <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY" maxlength="5" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="form-label required">CVV</label>
+                                <input type="text" class="form-control" id="cvv" placeholder="123" maxlength="4" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Card Type</label>
+                        <select class="form-control form-select" id="cardType">
+                            <option value="debit">Debit Card</option>
+                            <option value="credit">Credit Card</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Bank Name</label>
+                        <input type="text" class="form-control" id="bankName" placeholder="e.g., Chase, Bank of America">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Current Balance</label>
+                        <input type="number" class="form-control" id="cardBalance" step="0.01" placeholder="0.00" value="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" form="cardForm">Save Card</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cards.js') }}"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('show');
+        });
+        
+        document.querySelector('.sidebar-overlay')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('open');
+            document.querySelector('.sidebar-overlay').classList.remove('show');
+        });
+        
+        // Logout
+        document.querySelectorAll('[data-logout]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                App.logout();
+            });
+        });
+    </script>
+</body>
+</html>

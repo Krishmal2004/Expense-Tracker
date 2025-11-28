@@ -3,107 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Expense Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Expense Tracker - Track Your Spending</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 </head>
-<body>
-
-    <div class="container">
-        <nav class="sidebar">
-            <h2><i class="fas fa-wallet"></i> MyWallet</h2>
-            <ul>
-                <li class="active"><i class="fas fa-chart-pie"></i> Dashboard</li>
-                <li><i class="fas fa-credit-card"></i> Cards</li>
-                <li><i class="fas fa-cog"></i> Settings</li>
-            </ul>
+<body class="landing-page">
+    <!-- Header -->
+    <header class="landing-header" id="header">
+        <nav class="landing-nav">
+            <a href="/" class="landing-logo">
+                <i class="fas fa-wallet"></i>
+                <span>ExpenseTracker</span>
+            </a>
+            <div class="landing-nav-links">
+                <a href="/login">Login</a>
+                <a href="/signup" class="btn-signup">Sign Up</a>
+            </div>
         </nav>
+    </header>
 
-        <main class="main-content">
-            <header>
-                <h1>Dashboard</h1>
-                <p id="current-date">Fetching date...</p>
-            </header>
+    <!-- Hero Section -->
+    <section class="landing-hero">
+        <div class="landing-hero-content">
+            <h1>Take Control of Your Finances</h1>
+            <p>Track your expenses, manage your budget, and achieve your financial goals with our easy-to-use expense tracker.</p>
+            <div class="landing-hero-buttons">
+                <a href="/signup" class="btn btn-primary">Get Started Free</a>
+                <a href="/login" class="btn btn-secondary">Sign In</a>
+            </div>
+        </div>
+    </section>
 
-            <div class="stats-grid">
-                <div class="card stat-card">
-                    <h3>This Month</h3>
-                    <p class="amount" id="month-total">$0.00</p>
+    <!-- Features Section -->
+    <section class="landing-features">
+        <div class="container">
+            <h2>Why Choose ExpenseTracker?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Visual Analytics</h3>
+                    <p>Beautiful charts and graphs to visualize your spending patterns and track your progress.</p>
                 </div>
-                <div class="card stat-card">
-                    <h3>This Year</h3>
-                    <p class="amount" id="year-total">$0.00</p>
+                <div class="feature-card">
+                    <i class="fas fa-credit-card"></i>
+                    <h3>Card Management</h3>
+                    <p>Link multiple credit and debit cards to track expenses from all your accounts in one place.</p>
                 </div>
-                <div class="card stat-card">
-                    <h3>Total Transactions</h3>
-                    <p class="amount" id="total-count">0</p>
+                <div class="feature-card">
+                    <i class="fas fa-bell"></i>
+                    <h3>Budget Alerts</h3>
+                    <p>Get notified when you're approaching your budget limits to stay on track.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-tags"></i>
+                    <h3>Smart Categories</h3>
+                    <p>Organize your expenses with customizable categories for better insights.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-file-export"></i>
+                    <h3>Export Reports</h3>
+                    <p>Export your expense data to CSV for further analysis or record keeping.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Secure & Private</h3>
+                    <p>Your financial data is encrypted and protected with industry-standard security.</p>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="content-grid">
-                <div class="card form-section">
-                    <h3>Add New Expense</h3>
-                    <form id="expense-form">
-                        <div class="form-group">
-                            <label>Payment Method</label>
-                            <select id="card-select" required>
-                                <option value="Visa">Chase Visa (...1234)</option>
-                                <option value="Debit">Wells Fargo Debit (...5678)</option>
-                                <option value="Cash">Cash</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Amount ($)</label>
-                            <input type="number" id="amount" step="0.01" placeholder="0.00" required>
-                        </div>
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="container">
+            <p>&copy; 2025 ExpenseTracker. All rights reserved.</p>
+        </div>
+    </footer>
 
-                        <div class="form-group">
-                            <label>Category</label>
-                            <select id="category" required>
-                                <option value="Food">Food & Dining</option>
-                                <option value="Medicine">Medicine & Health</option>
-                                <option value="Transport">Transport</option>
-                                <option value="Utilities">Utilities</option>
-                                <option value="Shopping">Shopping</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" id="date" required>
-                        </div>
-
-                        <button type="submit" class="btn-primary">Add Expense</button>
-                    </form>
-                </div>
-
-                <div class="card chart-section">
-                    <h3>Spending Breakdown</h3>
-                    <canvas id="expenseChart"></canvas>
-                </div>
-            </div>
-
-            <div class="card list-section">
-                <h3>Recent Transactions</h3>
-                <table class="transaction-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Card</th>
-                            <th>Amount</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transaction-list">
-                        </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script>
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    </script>
 </body>
 </html>

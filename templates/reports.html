@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Finance Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-brand">
+                    <div class="sidebar-brand-icon">💰</div>
+                    <span>Finance Tracker</span>
+                </a>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/dashboard" class="sidebar-link">
+                        <span class="sidebar-link-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/cards" class="sidebar-link">
+                        <span class="sidebar-link-icon">💳</span>
+                        <span>Cards</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/expenses" class="sidebar-link">
+                        <span class="sidebar-link-icon">💸</span>
+                        <span>Expenses</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/reports" class="sidebar-link active">
+                        <span class="sidebar-link-icon">📈</span>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/notifications" class="sidebar-link">
+                        <span class="sidebar-link-icon">🔔</span>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/settings" class="sidebar-link">
+                        <span class="sidebar-link-icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                    <div class="topbar-title">
+                        <h1>Financial Reports</h1>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="notification-icon" onclick="window.location.href='/notifications'">
+                        🔔
+                        <span class="notification-badge">0</span>
+                    </div>
+                    <div class="user-menu">
+                        <button class="user-menu-toggle">
+                            <div class="user-menu-avatar">U</div>
+                            <span>▼</span>
+                        </button>
+                        <div class="user-menu-dropdown">
+                            <a href="/settings" class="user-menu-item">⚙️ Settings</a>
+                            <a href="#" id="logout-btn" class="user-menu-item">🚪 Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <h2>Analyze Your Spending</h2>
+                <p class="text-secondary">View detailed reports and insights about your finances</p>
+
+                <!-- Month Selector -->
+                <div class="card">
+                    <div class="form-group">
+                        <label for="report-month">Select Month</label>
+                        <input type="month" id="report-month" class="form-control" style="max-width: 300px;">
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Income</h3>
+                            <p id="report-income">$0.00</p>
+                        </div>
+                        <div class="stat-icon success">💵</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Expenses</h3>
+                            <p id="report-expenses">$0.00</p>
+                        </div>
+                        <div class="stat-icon danger">💸</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Net Savings</h3>
+                            <p id="report-savings">$0.00</p>
+                        </div>
+                        <div class="stat-icon primary">💰</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Savings Rate</h3>
+                            <p id="report-rate">0%</p>
+                        </div>
+                        <div class="stat-icon warning">📊</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1. 5rem;">
+                    <!-- Income vs Expenses -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Income vs Expenses</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="comparison-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Category Breakdown -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Expenses by Category</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="category-breakdown-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Trend -->
+                    <div class="chart-container" style="grid-column: 1 / -1;">
+                        <div class="chart-header">
+                            <h3 class="chart-title">6-Month Spending Trend</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="trend-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Details Table -->
+                <div class="card">
+                    <h3>Category Breakdown</h3>
+                    <div class="table-container" style="margin-top: 1rem;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Number of Transactions</th>
+                                    <th>Total Amount</th>
+                                    <th>Average per Transaction</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="category-details-tbody">
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/charts.js"></script>
+    <script>
+        let comparisonChart, categoryBreakdownChart, trendChart;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set default month to current month
+            const now = new Date();
+            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('report-month'). value = currentMonth;
+            
+            await loadReports();
+            
+            // Add change listener to month selector
+            document.getElementById('report-month').addEventListener('change', loadReports);
+        });
+
+        async function loadReports() {
+            const selectedMonth = document.getElementById('report-month').value;
+            
+            try {
+                // Load summary data
+                const summary = await apiRequest('/api/analytics/summary');
+                const monthlyData = await apiRequest('/api/analytics/monthly');
+                const categoryData = await apiRequest(`/api/analytics/category? month=${selectedMonth}`);
+                
+                // Update summary cards
+                document.getElementById('report-income').textContent = formatCurrency(summary.monthly_salary || 0);
+                document.getElementById('report-expenses').textContent = formatCurrency(summary.total_expenses || 0);
+                
+                const savings = (summary.monthly_salary || 0) - (summary.total_expenses || 0);
+                document.getElementById('report-savings').textContent = formatCurrency(savings);
+                
+                const savingsRate = summary.monthly_salary > 0 ? ((savings / summary.monthly_salary) * 100).toFixed(1) : 0;
+                document.getElementById('report-rate').textContent = savingsRate + '%';
+                
+                // Render charts
+                renderComparisonChart(summary);
+                renderCategoryBreakdownChart(categoryData);
+                renderTrendChart(monthlyData);
+                renderCategoryTable(categoryData);
+                
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                showAlert('Failed to load reports', 'danger');
+            }
+        }
+
+        function renderComparisonChart(summary) {
+            if (comparisonChart) {
+                comparisonChart.destroy();
+            }
+
+            const data = {
+                labels: ['Current Month'],
+                income: [summary.monthly_salary || 0],
+                expenses: [summary.total_expenses || 0]
+            };
+
+            comparisonChart = createComparisonBarChart('comparison-chart', data);
+        }
+
+        function renderCategoryBreakdownChart(categoryData) {
+            if (categoryBreakdownChart) {
+                categoryBreakdownChart.destroy();
+            }
+
+            const data = {
+                labels: categoryData.map(item => item.category),
+                values: categoryData.map(item => item.total)
+            };
+
+            categoryBreakdownChart = createCategoryChart('category-breakdown-chart', data);
+        }
+
+        function renderTrendChart(monthlyData) {
+            if (trendChart) {
+                trendChart. destroy();
+            }
+
+            const labels = monthlyData.map(item => {
+                const date = new Date(item.month + '-01');
+                return date. toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            });
+
+            const data = {
+                labels: labels,
+                values: monthlyData.map(item => item.total)
+            };
+
+            trendChart = createMonthlyExpensesChart('trend-chart', data);
+        }
+
+        function renderCategoryTable(categoryData) {
+            const tbody = document.getElementById('category-details-tbody');
+            
+            if (categoryData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No data available for selected month</td></tr>';
+                return;
+            }
+
+            const total = categoryData.reduce((sum, item) => sum + item.total, 0);
+
+            tbody.innerHTML = categoryData.map(item => {
+                const percentage = ((item.total / total) * 100).toFixed(1);
+                const count = 1; // You might want to add transaction count to API
+                const average = item.total / count;
+
+                return `
+                    <tr>
+                        <td>
+                            <span>${getCategoryIcon(item.category)}</span>
+                            ${item.category. charAt(0).toUpperCase() + item.category.slice(1)}
+                        </td>
+                        <td>${count}</td>
+                        <td class="fw-bold">${formatCurrency(item.total)}</td>
+                        <td>${formatCurrency(average)}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="flex: 1; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                                    <div style="width: ${percentage}%; height: 100%; background: #6366f1;"></div>
+                                </div>
+                                <span>${percentage}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

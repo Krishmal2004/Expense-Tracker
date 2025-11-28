@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Finance Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-brand">
+                    <div class="sidebar-brand-icon">💰</div>
+                    <span>Finance Tracker</span>
+                </a>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/dashboard" class="sidebar-link">
+                        <span class="sidebar-link-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/cards" class="sidebar-link">
+                        <span class="sidebar-link-icon">💳</span>
+                        <span>Cards</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/expenses" class="sidebar-link">
+                        <span class="sidebar-link-icon">💸</span>
+                        <span>Expenses</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/reports" class="sidebar-link">
+                        <span class="sidebar-link-icon">📈</span>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/notifications" class="sidebar-link active">
+                        <span class="sidebar-link-icon">🔔</span>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/settings" class="sidebar-link">
+                        <span class="sidebar-link-icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                    <div class="topbar-title">
+                        <h1>Notifications</h1>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="notification-icon" onclick="window.location.href='/notifications'">
+                        🔔
+                        <span class="notification-badge">0</span>
+                    </div>
+                    <div class="user-menu">
+                        <button class="user-menu-toggle">
+                            <div class="user-menu-avatar">U</div>
+                            <span>▼</span>
+                        </button>
+                        <div class="user-menu-dropdown">
+                            <a href="/settings" class="user-menu-item">⚙️ Settings</a>
+                            <a href="#" id="logout-btn" class="user-menu-item">🚪 Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h2>Your Notifications</h2>
+                        <p class="text-secondary">Stay updated with your financial alerts</p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="markAllAsRead()">
+                        Mark All as Read
+                    </button>
+                </div>
+
+                <div id="notifications-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadNotifications();
+        });
+
+        async function loadNotifications() {
+            try {
+                const notifications = await apiRequest('/api/notifications');
+                renderNotifications(notifications);
+                updateNotificationBadge(notifications);
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                showAlert('Failed to load notifications', 'danger');
+            }
+        }
+
+        function renderNotifications(notifications) {
+            const container = document.getElementById('notifications-container');
+            
+            if (notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔔</div>
+                        <h3>No notifications</h3>
+                        <p>You're all caught up!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = notifications.map(notification => {
+                const alertType = notification.type === 'warning' ? 'warning' : 
+                                notification.type === 'error' ?  'danger' : 'info';
+                const readClass = notification.is_read ? 'opacity: 0.7;' : '';
+                
+                return `
+                    <div class="alert alert-${alertType}" style="${readClass} cursor: pointer;" onclick="markAsRead(${notification. id})">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <strong>${getNotificationIcon(notification.type)} ${notification.type.toUpperCase()}</strong>
+                                <p style="margin: 0. 5rem 0 0 0;">${notification.message}</p>
+                                <small style="opacity: 0.8;">${formatDateTime(notification.created_at)}</small>
+                            </div>
+                            ${! notification.is_read ? '<span class="badge badge-primary">New</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getNotificationIcon(type) {
+            const icons = {
+                'warning': '⚠️',
+                'error': '❌',
+                'success': '✅',
+                'info': 'ℹ️'
+            };
+            return icons[type] || 'ℹ️';
+        }
+
+        function updateNotificationBadge(notifications) {
+            const unreadCount = notifications.filter(n => !n.is_read). length;
+            const badges = document.querySelectorAll('. notification-badge');
+            
+            badges.forEach(badge => {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badge. style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            });
+        }
+
+        async function markAsRead(notificationId) {
+            try {
+                await apiRequest(`/api/notifications/${notificationId}/read`, {
+                    method: 'PUT'
+                });
+                await loadNotifications();
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        async function markAllAsRead() {
+            try {
+                const notifications = await apiRequest('/api/notifications');
+                const unread = notifications.filter(n => ! n.is_read);
+                
+                await Promise.all(
+                    unread.map(n => apiRequest(`/api/notifications/${n.id}/read`, { method: 'PUT' }))
+                );
+                
+                showAlert('All notifications marked as read', 'success');
+                await loadNotifications();
+            } catch (error) {
+                showAlert('Failed to mark notifications as read', 'danger');
+            }
+        }
+    </script>
+</body>
+</html>

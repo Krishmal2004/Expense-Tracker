@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Finance Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-brand">
+                    <div class="sidebar-brand-icon">💰</div>
+                    <span>Finance Tracker</span>
+                </a>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/dashboard" class="sidebar-link">
+                        <span class="sidebar-link-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/cards" class="sidebar-link">
+                        <span class="sidebar-link-icon">💳</span>
+                        <span>Cards</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/expenses" class="sidebar-link">
+                        <span class="sidebar-link-icon">💸</span>
+                        <span>Expenses</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/reports" class="sidebar-link">
+                        <span class="sidebar-link-icon">📈</span>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/notifications" class="sidebar-link">
+                        <span class="sidebar-link-icon">🔔</span>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/settings" class="sidebar-link active">
+                        <span class="sidebar-link-icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                    <div class="topbar-title">
+                        <h1>Settings</h1>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="notification-icon" onclick="window.location.href='/notifications'">
+                        🔔
+                        <span class="notification-badge">0</span>
+                    </div>
+                    <div class="user-menu">
+                        <button class="user-menu-toggle">
+                            <div class="user-menu-avatar">U</div>
+                            <span>▼</span>
+                        </button>
+                        <div class="user-menu-dropdown">
+                            <a href="/settings" class="user-menu-item">⚙️ Settings</a>
+                            <a href="#" id="logout-btn" class="user-menu-item">🚪 Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <h2>Account Settings</h2>
+                <p class="text-secondary">Manage your account information and preferences</p>
+
+                <!-- Profile Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Profile Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label for="profile-username">Username</label>
+                                <input type="text" id="profile-username" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="profile-email">Email Address</label>
+                                <input type="email" id="profile-email" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="profile-salary">Monthly Salary</label>
+                                <input type="number" id="profile-salary" class="form-control" placeholder="0.00" step="0.01" min="0">
+                                <small class="text-secondary">This helps us track your spending against your income</small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Change Password -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Change Password</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="password-form">
+                            <div class="form-group">
+                                <label for="current-password">Current Password</label>
+                                <input type="password" id="current-password" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" class="form-control" required>
+                                <small class="text-secondary">Password must be at least 6 characters long</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="confirm-new-password">Confirm New Password</label>
+                                <input type="password" id="confirm-new-password" class="form-control" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Account Information -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Account Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; gap: 1rem;">
+                            <div>
+                                <strong>Account Created:</strong>
+                                <p id="account-created" class="text-secondary">Loading...</p>
+                            </div>
+                            <div>
+                                <strong>User ID:</strong>
+                                <p id="user-id" class="text-secondary">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Load user profile
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const profile = await apiRequest('/api/user/profile');
+                
+                document.getElementById('profile-username').value = profile.username;
+                document.getElementById('profile-email').value = profile.email;
+                document.getElementById('profile-salary').value = profile.monthly_salary || 0;
+                document.getElementById('account-created').textContent = formatDateTime(profile.created_at);
+                document.getElementById('user-id').textContent = profile.id;
+                
+                // Update user menu avatar
+                const avatars = document.querySelectorAll('. user-menu-avatar, .sidebar-user-avatar');
+                avatars.forEach(avatar => {
+                    avatar. textContent = profile.username. charAt(0).toUpperCase();
+                });
+            } catch (error) {
+                showAlert('Failed to load profile', 'danger');
+            }
+        });
+
+        // Handle profile update
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e. preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            const profileData = {
+                username: document.getElementById('profile-username').value,
+                email: document.getElementById('profile-email').value,
+                monthly_salary: parseFloat(document. getElementById('profile-salary').value) || 0
+            };
+            
+            showLoading(submitBtn);
+            
+            try {
+                await apiRequest('/api/user/profile', {
+                    method: 'PUT',
+                    body: JSON.stringify(profileData)
+                });
+                
+                showAlert('Profile updated successfully', 'success');
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            } finally {
+                hideLoading(submitBtn);
+            }
+        });
+
+        // Handle password change
+        document.getElementById('password-form'). addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e. target.querySelector('button[type="submit"]');
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-new-password').value;
+            
+            if (newPassword. length < 6) {
+                showAlert('Password must be at least 6 characters long', 'danger');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('Passwords do not match', 'danger');
+                return;
+            }
+            
+            showLoading(submitBtn);
+            
+            try {
+                await apiRequest('/api/user/password', {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+                
+                showAlert('Password changed successfully', 'success');
+                document.getElementById('password-form').reset();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            } finally {
+                hideLoading(submitBtn);
+            }
+        });
+    </script>
+</body>
+</html>

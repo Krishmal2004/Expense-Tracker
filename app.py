@@ -8,7 +8,14 @@ import os
 import json
 
 app = Flask(__name__)
-app.config. from_object('config.Config')
+app.config['SECRET_KEY'] = os.environ. get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST', 'localhost')
+app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', '')
+app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'finance_tracker')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = 3600
 
 # Initialize extensions
 mysql = MySQL(app)

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses - Finance Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-brand">
+                    <div class="sidebar-brand-icon">💰</div>
+                    <span>Finance Tracker</span>
+                </a>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/dashboard" class="sidebar-link">
+                        <span class="sidebar-link-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/cards" class="sidebar-link">
+                        <span class="sidebar-link-icon">💳</span>
+                        <span>Cards</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/expenses" class="sidebar-link active">
+                        <span class="sidebar-link-icon">💸</span>
+                        <span>Expenses</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/reports" class="sidebar-link">
+                        <span class="sidebar-link-icon">📈</span>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/notifications" class="sidebar-link">
+                        <span class="sidebar-link-icon">🔔</span>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/settings" class="sidebar-link">
+                        <span class="sidebar-link-icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                    <div class="topbar-title">
+                        <h1>Expenses</h1>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="notification-icon" onclick="window.location.href='/notifications'">
+                        🔔
+                        <span class="notification-badge">0</span>
+                    </div>
+                    <div class="user-menu">
+                        <button class="user-menu-toggle">
+                            <div class="user-menu-avatar">U</div>
+                            <span>▼</span>
+                        </button>
+                        <div class="user-menu-dropdown">
+                            <a href="/settings" class="user-menu-item">⚙️ Settings</a>
+                            <a href="#" id="logout-btn" class="user-menu-item">🚪 Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h2>Track Your Expenses</h2>
+                        <p class="text-secondary">Monitor and manage all your spending</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal('add-expense-modal')">
+                        ➕ Add Expense
+                    </button>
+                </div>
+
+                <!-- Expense Summary -->
+                <div id="expense-summary"></div>
+
+                <!-- Filters -->
+                <div class="card">
+                    <h3>Filter Expenses</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                        <div class="form-group">
+                            <label for="filter-start-date">Start Date</label>
+                            <input type="date" id="filter-start-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-end-date">End Date</label>
+                            <input type="date" id="filter-end-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="filter-category">Category</label>
+                            <select id="filter-category" class="form-control">
+                                <option value="">All Categories</option>
+                                <option value="food">Food</option>
+                                <option value="transport">Transport</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="utilities">Utilities</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="education">Education</option>
+                                <option value="housing">Housing</option>
+                                <option value="insurance">Insurance</option>
+                                <option value="savings">Savings</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end; gap: 0.5rem;">
+                            <button class="btn btn-primary" id="apply-filters-btn">Apply</button>
+                            <button class="btn btn-secondary" id="reset-filters-btn">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses Table -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Payment Method</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenses-tbody">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="spinner"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal" id="add-expense-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Expense</h3>
+                <button class="modal-close" onclick="closeModal('add-expense-modal'); resetExpenseForm();">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-expense-form">
+                    <div class="form-group">
+                        <label for="expense-description">Description</label>
+                        <input type="text" id="expense-description" class="form-control" placeholder="What did you spend on?" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expense-amount">Amount</label>
+                        <input type="number" id="expense-amount" class="form-control" placeholder="0.00" step="0.01" min="0. 01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expense-category">Category</label>
+                        <select id="expense-category" class="form-control" required>
+                            <option value="">Select Category</option>
+                            <option value="food">🍔 Food</option>
+                            <option value="transport">🚗 Transport</option>
+                            <option value="shopping">🛍️ Shopping</option>
+                            <option value="entertainment">🎬 Entertainment</option>
+                            <option value="utilities">💡 Utilities</option>
+                            <option value="healthcare">🏥 Healthcare</option>
+                            <option value="education">📚 Education</option>
+                            <option value="housing">🏠 Housing</option>
+                            <option value="insurance">🛡️ Insurance</option>
+                            <option value="savings">💰 Savings</option>
+                            <option value="other">📦 Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expense-date">Date</label>
+                        <input type="date" id="expense-date" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expense-card">Payment Method (Optional)</label>
+                        <select id="expense-card" class="form-control">
+                            <option value="">Cash / Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('add-expense-modal'); resetExpenseForm();">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Expense</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/expenses.js"></script>
+</body>
+</html>

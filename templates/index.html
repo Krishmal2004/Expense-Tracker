@@ -1,109 +1,93 @@
-<!DOCTYPE html>
+<! DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Expense Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Finance Tracker - Manage Your Money</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-container">
+                <a href="/" class="navbar-brand">💰 Finance Tracker</a>
+                <ul class="navbar-menu">
+                    <li><a href="#features" class="navbar-link">Features</a></li>
+                    <li><a href="/login" class="navbar-link">Login</a></li>
+                    <li><a href="/signup" class="btn btn-primary">Get Started</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-    <div class="container">
-        <nav class="sidebar">
-            <h2><i class="fas fa-wallet"></i> MyWallet</h2>
-            <ul>
-                <li class="active"><i class="fas fa-chart-pie"></i> Dashboard</li>
-                <li><i class="fas fa-credit-card"></i> Cards</li>
-                <li><i class="fas fa-cog"></i> Settings</li>
-            </ul>
-        </nav>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Take Control of Your Finances</h1>
+            <p>Track expenses, manage cards, and achieve your financial goals with ease</p>
+            <div class="hero-buttons">
+                <a href="/signup" class="btn btn-primary btn-lg">Start Free</a>
+                <a href="/login" class="btn btn-outline btn-lg">Sign In</a>
+            </div>
+        </div>
+    </section>
 
-        <main class="main-content">
-            <header>
-                <h1>Dashboard</h1>
-                <p id="current-date">Fetching date...</p>
-            </header>
-
-            <div class="stats-grid">
-                <div class="card stat-card">
-                    <h3>This Month</h3>
-                    <p class="amount" id="month-total">$0.00</p>
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="text-center">Everything You Need to Manage Your Money</h2>
+            <p class="text-center text-secondary">Powerful features to help you track and control your spending</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+                    <h3>Card Management</h3>
+                    <p>Add and manage multiple credit and debit cards securely in one place</p>
                 </div>
-                <div class="card stat-card">
-                    <h3>This Year</h3>
-                    <p class="amount" id="year-total">$0.00</p>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💸</div>
+                    <h3>Expense Tracking</h3>
+                    <p>Track every expense with categories, dates, and detailed descriptions</p>
                 </div>
-                <div class="card stat-card">
-                    <h3>Total Transactions</h3>
-                    <p class="amount" id="total-count">0</p>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Visual Reports</h3>
+                    <p>See your spending patterns with beautiful charts and graphs</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Smart Notifications</h3>
+                    <p>Get alerts when you're approaching your budget limits</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Budget Planning</h3>
+                    <p>Set monthly budgets and track your progress automatically</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure & Private</h3>
+                    <p>Your financial data is encrypted and kept completely secure</p>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="content-grid">
-                <div class="card form-section">
-                    <h3>Add New Expense</h3>
-                    <form id="expense-form">
-                        <div class="form-group">
-                            <label>Payment Method</label>
-                            <select id="card-select" required>
-                                <option value="Visa">Chase Visa (...1234)</option>
-                                <option value="Debit">Wells Fargo Debit (...5678)</option>
-                                <option value="Cash">Cash</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Amount ($)</label>
-                            <input type="number" id="amount" step="0.01" placeholder="0.00" required>
-                        </div>
+    <!-- CTA Section -->
+    <section class="hero" style="padding: 4rem 0;">
+        <div class="container">
+            <h2>Ready to Start Managing Your Finances?</h2>
+            <p>Join thousands of users who are taking control of their money</p>
+            <a href="/signup" class="btn btn-primary btn-lg">Create Free Account</a>
+        </div>
+    </section>
 
-                        <div class="form-group">
-                            <label>Category</label>
-                            <select id="category" required>
-                                <option value="Food">Food & Dining</option>
-                                <option value="Medicine">Medicine & Health</option>
-                                <option value="Transport">Transport</option>
-                                <option value="Utilities">Utilities</option>
-                                <option value="Shopping">Shopping</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" id="date" required>
-                        </div>
-
-                        <button type="submit" class="btn-primary">Add Expense</button>
-                    </form>
-                </div>
-
-                <div class="card chart-section">
-                    <h3>Spending Breakdown</h3>
-                    <canvas id="expenseChart"></canvas>
-                </div>
-            </div>
-
-            <div class="card list-section">
-                <h3>Recent Transactions</h3>
-                <table class="transaction-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Card</th>
-                            <th>Amount</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transaction-list">
-                        </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="/static/js/main.js"></script>
 </body>
 </html>

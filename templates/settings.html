@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <style>
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        .settings-card {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+        .settings-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .settings-card-header i {
+            color: var(--primary-color);
+        }
+        .settings-card-header h3 {
+            margin: 0;
+            font-size: var(--font-size-lg);
+        }
+        .settings-card-body {
+            padding: 1.5rem;
+        }
+        .profile-avatar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .profile-avatar-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .danger-zone {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+        }
+        .danger-zone h4 {
+            color: var(--danger-color);
+            margin-bottom: 0.5rem;
+        }
+        .danger-zone p {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 992px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>ExpenseTracker</span>
+                </a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Menu</span>
+                    <a href="/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/add-expense" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Expense</span>
+                    </a>
+                    <a href="/cards" class="nav-link">
+                        <i class="fas fa-credit-card"></i>
+                        <span>My Cards</span>
+                    </a>
+                    <a href="/reports" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Account</span>
+                    <a href="/settings" class="nav-link active">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="nav-link logout" data-logout>
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title">
+                        <h1>Settings</h1>
+                        <p>Manage your account and preferences</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="settings-grid">
+                    <!-- Profile Information -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <i class="fas fa-user"></i>
+                            <h3>Profile Information</h3>
+                        </div>
+                        <div class="settings-card-body">
+                            <div class="profile-avatar">
+                                <div class="profile-avatar-img" id="avatarInitials">JD</div>
+                                <button class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-camera"></i> Change Photo
+                                </button>
+                            </div>
+                            
+                            <form id="profileForm">
+                                <div class="form-group">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="fullName" placeholder="Your full name">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" placeholder="your@email.com" disabled>
+                                    <span class="form-text">Email cannot be changed</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" placeholder="+1 (555) 000-0000">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Address</label>
+                                    <input type="text" class="form-control" id="address" placeholder="123 Main Street">
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="form-label">City</label>
+                                            <input type="text" class="form-control" id="city" placeholder="City">
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label class="form-label">State</label>
+                                            <input type="text" class="form-control" id="state" placeholder="State">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div>
+                        <!-- Monthly Salary -->
+                        <div class="settings-card mb-4">
+                            <div class="settings-card-header">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <h3>Monthly Budget</h3>
+                            </div>
+                            <div class="settings-card-body">
+                                <form id="salaryForm">
+                                    <div class="form-group">
+                                        <label class="form-label">Monthly Salary / Budget</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="monthlySalary" step="0.01" placeholder="0.00">
+                                        </div>
+                                        <span class="form-text">Set your monthly income to track your budget usage</span>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Update Budget
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Change Password -->
+                        <div class="settings-card mb-4">
+                            <div class="settings-card-header">
+                                <i class="fas fa-lock"></i>
+                                <h3>Change Password</h3>
+                            </div>
+                            <div class="settings-card-body">
+                                <form id="passwordForm">
+                                    <div class="form-group">
+                                        <label class="form-label">Current Password</label>
+                                        <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">New Password</label>
+                                        <input type="password" class="form-control" id="newPassword" placeholder="Enter new password" minlength="8">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Confirm New Password</label>
+                                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password">
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-key"></i> Change Password
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Notification Preferences -->
+                        <div class="settings-card mb-4">
+                            <div class="settings-card-header">
+                                <i class="fas fa-bell"></i>
+                                <h3>Notifications</h3>
+                            </div>
+                            <div class="settings-card-body">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" id="emailNotifications" checked>
+                                    <label class="form-check-label" for="emailNotifications">
+                                        Email Notifications
+                                        <span class="d-block text-muted" style="font-size: 0.8rem;">Receive weekly expense summaries</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="budgetAlerts" checked>
+                                    <label class="form-check-label" for="budgetAlerts">
+                                        Budget Alerts
+                                        <span class="d-block text-muted" style="font-size: 0.8rem;">Get notified when you exceed 80% of your budget</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Danger Zone -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <i class="fas fa-exclamation-triangle" style="color: var(--danger-color);"></i>
+                                <h3 style="color: var(--danger-color);">Danger Zone</h3>
+                            </div>
+                            <div class="settings-card-body">
+                                <div class="danger-zone">
+                                    <h4><i class="fas fa-trash"></i> Delete Account</h4>
+                                    <p>Once you delete your account, there is no going back. Please be certain.</p>
+                                    <button class="btn btn-danger" id="deleteAccountBtn">
+                                        Delete My Account
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('show');
+        });
+        
+        document.querySelector('.sidebar-overlay')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('open');
+            document.querySelector('.sidebar-overlay').classList.remove('show');
+        });
+        
+        // Logout
+        document.querySelectorAll('[data-logout]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                App.logout();
+            });
+        });
+        
+        // Load user data
+        async function loadUserData() {
+            try {
+                const user = await App.apiRequest('/user/profile');
+                
+                document.getElementById('fullName').value = user.full_name || '';
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('phone').value = user.phone || '';
+                document.getElementById('address').value = user.address || '';
+                document.getElementById('city').value = user.city || '';
+                document.getElementById('state').value = user.state || '';
+                document.getElementById('monthlySalary').value = user.monthly_salary || '';
+                
+                // Update avatar initials
+                if (user.full_name) {
+                    document.getElementById('avatarInitials').textContent = App.getInitials(user.full_name);
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+        
+        // Profile form submission
+        document.getElementById('profileForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                await App.apiRequest('/user/profile', {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        full_name: document.getElementById('fullName').value,
+                        phone: document.getElementById('phone').value,
+                        address: document.getElementById('address').value,
+                        city: document.getElementById('city').value,
+                        state: document.getElementById('state').value
+                    })
+                });
+                
+                showToast('Profile updated successfully', 'success');
+            } catch (error) {
+                showToast(error.message || 'Failed to update profile', 'error');
+            }
+        });
+        
+        // Salary form submission
+        document.getElementById('salaryForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                await App.apiRequest('/user/salary', {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        monthly_salary: parseFloat(document.getElementById('monthlySalary').value) || 0
+                    })
+                });
+                
+                showToast('Budget updated successfully', 'success');
+            } catch (error) {
+                showToast(error.message || 'Failed to update budget', 'error');
+            }
+        });
+        
+        // Password form submission
+        document.getElementById('passwordForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                showToast('New passwords do not match', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                showToast('Password must be at least 8 characters', 'error');
+                return;
+            }
+            
+            try {
+                await App.apiRequest('/user/change-password', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    })
+                });
+                
+                showToast('Password changed successfully', 'success');
+                document.getElementById('passwordForm').reset();
+            } catch (error) {
+                showToast(error.message || 'Failed to change password', 'error');
+            }
+        });
+        
+        // Delete account
+        document.getElementById('deleteAccountBtn')?.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                return;
+            }
+            
+            if (!confirm('All your data including expenses and cards will be permanently deleted. Continue?')) {
+                return;
+            }
+            
+            showToast('Account deletion is disabled in this demo', 'warning');
+        });
+        
+        // Load data on page load
+        loadUserData();
+    </script>
+</body>
+</html>

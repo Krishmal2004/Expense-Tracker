@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense | Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <style>
+        .expense-form-card {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .category-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .category-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .category-btn:hover {
+            background: var(--primary-light);
+        }
+        .category-btn.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+        .category-btn i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        .category-btn span {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        .payment-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .payment-option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .payment-option:has(input:checked) {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+        .payment-option input {
+            display: none;
+        }
+        .payment-option i {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+        @media (max-width: 576px) {
+            .category-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="expensesLoader" style="display: none;">
+        <div class="spinner spinner-lg"></div>
+    </div>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>ExpenseTracker</span>
+                </a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Menu</span>
+                    <a href="/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/add-expense" class="nav-link active">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Expense</span>
+                    </a>
+                    <a href="/cards" class="nav-link">
+                        <i class="fas fa-credit-card"></i>
+                        <span>My Cards</span>
+                    </a>
+                    <a href="/reports" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Account</span>
+                    <a href="/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="nav-link logout" data-logout>
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title">
+                        <h1 class="form-title">Add New Expense</h1>
+                        <p>Record your expense transaction</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="expense-form-card">
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="expenseForm">
+                                <!-- Amount -->
+                                <div class="form-group">
+                                    <label class="form-label required">Amount</label>
+                                    <div class="input-group">
+                                        <input 
+                                            type="number" 
+                                            class="form-control" 
+                                            id="amount" 
+                                            step="0.01" 
+                                            min="0.01"
+                                            placeholder="0.00" 
+                                            required
+                                            style="font-size: 1.5rem; font-weight: 600;"
+                                        >
+                                        <span class="input-group-text">USD</span>
+                                    </div>
+                                </div>
+
+                                <!-- Category -->
+                                <div class="form-group">
+                                    <label class="form-label required">Category</label>
+                                    <div class="category-buttons">
+                                        <label class="category-btn" data-category="Food">
+                                            <i class="fas fa-utensils"></i>
+                                            <span>Food</span>
+                                        </label>
+                                        <label class="category-btn" data-category="Transport">
+                                            <i class="fas fa-car"></i>
+                                            <span>Transport</span>
+                                        </label>
+                                        <label class="category-btn" data-category="Shopping">
+                                            <i class="fas fa-shopping-bag"></i>
+                                            <span>Shopping</span>
+                                        </label>
+                                        <label class="category-btn" data-category="Bills">
+                                            <i class="fas fa-file-invoice"></i>
+                                            <span>Bills</span>
+                                        </label>
+                                        <label class="category-btn" data-category="Entertainment">
+                                            <i class="fas fa-film"></i>
+                                            <span>Entertainment</span>
+                                        </label>
+                                        <label class="category-btn" data-category="Healthcare">
+                                            <i class="fas fa-heartbeat"></i>
+                                            <span>Healthcare</span>
+                                        </label>
+                                        <label class="category-btn" data-category="Education">
+                                            <i class="fas fa-graduation-cap"></i>
+                                            <span>Education</span>
+                                        </label>
+                                        <label class="category-btn" data-category="Others">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                            <span>Others</span>
+                                        </label>
+                                    </div>
+                                    <select class="form-control form-select" id="category" required style="display: none;">
+                                        <option value="">Select Category</option>
+                                        <option value="Food">Food & Dining</option>
+                                        <option value="Transport">Transport</option>
+                                        <option value="Shopping">Shopping</option>
+                                        <option value="Bills">Bills & Utilities</option>
+                                        <option value="Entertainment">Entertainment</option>
+                                        <option value="Healthcare">Healthcare</option>
+                                        <option value="Education">Education</option>
+                                        <option value="Others">Others</option>
+                                    </select>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="form-group">
+                                    <label class="form-label">Description</label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="description" 
+                                        rows="2" 
+                                        placeholder="What was this expense for?"
+                                    ></textarea>
+                                </div>
+
+                                <!-- Date -->
+                                <div class="form-group">
+                                    <label class="form-label required">Date</label>
+                                    <input type="date" class="form-control" id="expenseDate" required>
+                                </div>
+
+                                <!-- Payment Method -->
+                                <div class="form-group">
+                                    <label class="form-label">Payment Method</label>
+                                    <div class="payment-options">
+                                        <label class="payment-option">
+                                            <input type="radio" name="paymentMethod" value="cash" checked>
+                                            <i class="fas fa-money-bill"></i>
+                                            <span>Cash</span>
+                                        </label>
+                                        <label class="payment-option">
+                                            <input type="radio" name="paymentMethod" value="card">
+                                            <i class="fas fa-credit-card"></i>
+                                            <span>Card</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Card Selection (Hidden by default) -->
+                                <div class="form-group" id="cardSelectWrapper" style="display: none;">
+                                    <label class="form-label">Select Card</label>
+                                    <select class="form-control form-select" id="cardSelect">
+                                        <option value="">Select a card</option>
+                                    </select>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="form-group mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg btn-block">
+                                        <i class="fas fa-check"></i>
+                                        Save Expense
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/expenses.js') }}"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('show');
+        });
+        
+        document.querySelector('.sidebar-overlay')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('open');
+            document.querySelector('.sidebar-overlay').classList.remove('show');
+        });
+        
+        // Logout
+        document.querySelectorAll('[data-logout]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                App.logout();
+            });
+        });
+        
+        // Category button selection
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                document.getElementById('category').value = this.dataset.category;
+            });
+        });
+        
+        // Set default date to today
+        document.getElementById('expenseDate').valueAsDate = new Date();
+    </script>
+</body>
+</html>

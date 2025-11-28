@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports | Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .filter-bar .form-control,
+        .filter-bar .form-select {
+            width: auto;
+        }
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .insight-card {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-lg);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .insight-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .insight-card-title {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        .insight-card-value {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+        }
+        .insight-card-trend {
+            font-size: var(--font-size-sm);
+            margin-top: 0.5rem;
+        }
+        .insight-card-trend.positive {
+            color: var(--danger-color);
+        }
+        .insight-card-trend.negative {
+            color: var(--success-color);
+        }
+        .reports-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 992px) {
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="reportsLoader" style="display: none;">
+        <div class="spinner spinner-lg"></div>
+    </div>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>ExpenseTracker</span>
+                </a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Menu</span>
+                    <a href="/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/add-expense" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Expense</span>
+                    </a>
+                    <a href="/cards" class="nav-link">
+                        <i class="fas fa-credit-card"></i>
+                        <span>My Cards</span>
+                    </a>
+                    <a href="/reports" class="nav-link active">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Account</span>
+                    <a href="/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="nav-link logout" data-logout>
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title">
+                        <h1>Reports & Analytics</h1>
+                        <p>Analyze your spending patterns</p>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <button class="btn btn-secondary" id="exportBtn">
+                        <i class="fas fa-download"></i>
+                        Export CSV
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <select class="form-control form-select" id="filterMonth">
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    
+                    <select class="form-control form-select" id="filterYear">
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                    </select>
+                    
+                    <select class="form-control form-select" id="filterCategory">
+                        <option value="">All Categories</option>
+                        <option value="Food">Food & Dining</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Bills">Bills & Utilities</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Education">Education</option>
+                        <option value="Others">Others</option>
+                    </select>
+                    
+                    <button class="btn btn-primary" onclick="applyFilters()">
+                        <i class="fas fa-filter"></i> Apply
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="resetFilters()">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+
+                <!-- Insights Grid -->
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <div class="insight-card-icon" style="background: var(--primary-light); color: var(--primary-color);">
+                            <i class="fas fa-wallet fa-lg"></i>
+                        </div>
+                        <div class="insight-card-title">Current Month Spending</div>
+                        <div class="insight-card-value" id="currentMonthTotal">$0.00</div>
+                        <div class="insight-card-trend" id="monthTrend">
+                            <i class="fas fa-arrow-up"></i> 0% vs last month
+                        </div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <div class="insight-card-icon" style="background: #fef3c7; color: var(--warning-color);">
+                            <i class="fas fa-fire fa-lg"></i>
+                        </div>
+                        <div class="insight-card-title">Top Spending Category</div>
+                        <div class="insight-card-value" id="topCategory">-</div>
+                        <div class="insight-card-trend" id="topCategoryAmount">$0.00 spent</div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <div class="insight-card-icon" style="background: #d1fae5; color: var(--success-color);">
+                            <i class="fas fa-piggy-bank fa-lg"></i>
+                        </div>
+                        <div class="insight-card-title">Remaining Budget</div>
+                        <div class="insight-card-value" id="remainingBudget">$0.00</div>
+                        <div class="insight-card-trend" id="budgetPercent">0% of budget used</div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <div class="insight-card-icon" style="background: #dbeafe; color: var(--info-color);">
+                            <i class="fas fa-calendar fa-lg"></i>
+                        </div>
+                        <div class="insight-card-title">Daily Average</div>
+                        <div class="insight-card-value" id="dailyAverage">$0.00</div>
+                        <div class="insight-card-trend">per day this month</div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="reports-grid">
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <h3>Monthly Spending Trend</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <h3>Category Breakdown</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="categoryBreakdownChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Month Comparison Chart -->
+                <div class="chart-card mb-4">
+                    <div class="chart-card-header">
+                        <h3>Month-over-Month Comparison</h3>
+                    </div>
+                    <div class="chart-container" style="height: 350px;">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Expenses Table -->
+                <div class="transactions-card">
+                    <div class="transactions-header">
+                        <h3>Expense History</h3>
+                        <span class="badge badge-primary" id="expenseCount">0 expenses</span>
+                    </div>
+                    <div id="expensesList">
+                        <!-- Expenses will be loaded here -->
+                        <div class="empty-state">
+                            <i class="fas fa-receipt"></i>
+                            <h4>Loading expenses...</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script>
+        // Set current month/year in filters
+        const now = new Date();
+        document.getElementById('filterMonth').value = now.getMonth() + 1;
+        document.getElementById('filterYear').value = now.getFullYear();
+        
+        // Mobile menu toggle
+        document.getElementById('menuToggle')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('show');
+        });
+        
+        document.querySelector('.sidebar-overlay')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('open');
+            document.querySelector('.sidebar-overlay').classList.remove('show');
+        });
+        
+        // Logout
+        document.querySelectorAll('[data-logout]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                App.logout();
+            });
+        });
+        
+        // Load reports data
+        async function loadReportsData() {
+            const month = document.getElementById('filterMonth').value;
+            const year = document.getElementById('filterYear').value;
+            
+            try {
+                // Load trends
+                const trends = await App.apiRequest('/analytics/trends');
+                
+                document.getElementById('currentMonthTotal').textContent = App.formatCurrency(trends.current_month_total);
+                
+                const trendEl = document.getElementById('monthTrend');
+                const changePercent = trends.change_percent;
+                if (changePercent > 0) {
+                    trendEl.innerHTML = `<i class="fas fa-arrow-up"></i> ${changePercent}% vs last month`;
+                    trendEl.className = 'insight-card-trend positive';
+                } else if (changePercent < 0) {
+                    trendEl.innerHTML = `<i class="fas fa-arrow-down"></i> ${Math.abs(changePercent)}% vs last month`;
+                    trendEl.className = 'insight-card-trend negative';
+                } else {
+                    trendEl.innerHTML = `No change vs last month`;
+                    trendEl.className = 'insight-card-trend';
+                }
+                
+                document.getElementById('topCategory').textContent = trends.top_category || '-';
+                document.getElementById('topCategoryAmount').textContent = App.formatCurrency(trends.top_category_amount) + ' spent';
+                
+                document.getElementById('remainingBudget').textContent = App.formatCurrency(trends.remaining_budget);
+                document.getElementById('budgetPercent').textContent = `${trends.budget_percent}% of budget used`;
+                
+                // Calculate daily average
+                const daysInMonth = new Date(year, month, 0).getDate();
+                const dayOfMonth = Math.min(now.getDate(), daysInMonth);
+                const dailyAvg = trends.current_month_total / dayOfMonth;
+                document.getElementById('dailyAverage').textContent = App.formatCurrency(dailyAvg);
+                
+                // Load monthly data for charts
+                const monthlyData = await App.apiRequest('/analytics/monthly');
+                
+                // Update trend chart
+                updateTrendChart(monthlyData.monthly_data);
+                
+                // Load category data
+                const categoryData = await App.apiRequest(`/analytics/category?month=${month}&year=${year}`);
+                updateCategoryChart(categoryData.categories);
+                
+                // Load expenses list
+                const expenses = await App.apiRequest(`/expenses?month=${month}&year=${year}`);
+                renderExpensesList(expenses.expenses);
+                document.getElementById('expenseCount').textContent = `${expenses.expenses.length} expenses`;
+                
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                showToast('Failed to load reports data', 'error');
+            }
+        }
+        
+        function updateTrendChart(data) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (window.trendChartInstance) {
+                window.trendChartInstance.destroy();
+            }
+            
+            window.trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.month_name),
+                    datasets: [{
+                        label: 'Monthly Spending',
+                        data: data.map(d => d.total),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: value => '$' + value
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateCategoryChart(data) {
+            const ctx = document.getElementById('categoryBreakdownChart').getContext('2d');
+            
+            if (window.categoryChartInstance) {
+                window.categoryChartInstance.destroy();
+            }
+            
+            if (!data || data.length === 0) {
+                ctx.canvas.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-chart-pie"></i><p>No data available</p></div>';
+                return;
+            }
+            
+            window.categoryChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.category),
+                    datasets: [{
+                        data: data.map(d => d.amount),
+                        backgroundColor: App.CHART_COLORS
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderExpensesList(expenses) {
+            const container = document.getElementById('expensesList');
+            
+            if (!expenses || expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <h4>No expenses found</h4>
+                        <p>Try adjusting your filters</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Payment</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${expenses.map(expense => `
+                            <tr>
+                                <td>${App.formatDate(expense.expense_date)}</td>
+                                <td>
+                                    <span class="badge badge-primary">${expense.category}</span>
+                                </td>
+                                <td>${expense.description || '-'}</td>
+                                <td>${expense.card_name || 'Cash'}</td>
+                                <td class="transaction-amount expense">-${App.formatCurrency(expense.amount)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        function applyFilters() {
+            loadReportsData();
+        }
+        
+        function resetFilters() {
+            document.getElementById('filterMonth').value = now.getMonth() + 1;
+            document.getElementById('filterYear').value = now.getFullYear();
+            document.getElementById('filterCategory').value = '';
+            loadReportsData();
+        }
+        
+        // Initialize comparison chart
+        function initComparisonChart() {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [
+                        {
+                            label: 'This Month',
+                            data: [0, 0, 0, 0],
+                            backgroundColor: '#3b82f6'
+                        },
+                        {
+                            label: 'Last Month',
+                            data: [0, 0, 0, 0],
+                            backgroundColor: '#e5e7eb'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: value => '$' + value
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize
+        loadReportsData();
+        initComparisonChart();
+    </script>
+</body>
+</html>

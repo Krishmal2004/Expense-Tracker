@@ -3,116 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Nexus Tracker</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Dashboard | Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-
-<div class="d-flex" id="wrapper">
-    <div class="bg-white" id="sidebar-wrapper">
-        <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom">
-            <i class="fas fa-wallet me-2"></i>Nexus
-        </div>
-        <div class="list-group list-group-flush my-3">
-            <a href="index.html" class="list-group-item list-group-item-action bg-transparent second-text active">
-                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-            </a>
-            <a href="#" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
-                <i class="fas fa-credit-card me-2"></i>My Cards
-            </a>
-            <a href="#" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
-                <i class="fas fa-chart-line me-2"></i>Analytics
-            </a>
-            <a href="login.html" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold mt-5">
-                <i class="fas fa-power-off me-2"></i>Logout
-            </a>
-        </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="dashboardLoader">
+        <div class="spinner spinner-lg"></div>
     </div>
 
-    <div id="page-content-wrapper">
-        <nav class="navbar navbar-expand-lg navbar-light bg-transparent py-4 px-4">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-bars primary-text fs-4 me-3" id="menu-toggle"></i>
-                <h2 class="fs-2 m-0">Dashboard</h2>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>ExpenseTracker</span>
+                </a>
             </div>
             
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle second-text fw-bold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user me-2"></i>John Doe
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="login.html">Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </nav>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Menu</span>
+                    <a href="/dashboard" class="nav-link active">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/add-expense" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Expense</span>
+                    </a>
+                    <a href="/cards" class="nav-link">
+                        <i class="fas fa-credit-card"></i>
+                        <span>My Cards</span>
+                    </a>
+                    <a href="/reports" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Account</span>
+                    <a href="/settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="nav-link logout" data-logout>
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
 
-        <div class="container-fluid px-4">
-            <div class="row g-3 my-2">
-                <div class="col-md-3">
-                    <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded-4 card-hover">
-                        <div>
-                            <p class="text-muted fs-6 mb-0">Total Balance</p>
-                            <h3 class="fs-2 fw-bold">$12,450</h3>
-                        </div>
-                        <i class="fas fa-wallet fs-1 primary-text border rounded-full secondary-bg p-3"></i>
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title">
+                        <h1>Dashboard</h1>
+                        <p id="currentDate"></p>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded-4 card-hover">
-                        <div>
-                            <p class="text-muted fs-6 mb-0">Expenses</p>
-                            <h3 class="fs-2 fw-bold text-danger">-$1,890</h3>
+                
+                <div class="header-right">
+                    <!-- Notification Bell -->
+                    <div class="notification-wrapper" style="position: relative;">
+                        <button class="notification-bell">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" style="display: none;">0</span>
+                        </button>
+                        <div class="notifications-panel" id="notificationsPanel"></div>
+                    </div>
+                    
+                    <!-- User Dropdown -->
+                    <div class="user-dropdown">
+                        <button class="user-dropdown-toggle">
+                            <div class="user-avatar">JD</div>
+                            <div class="user-info">
+                                <span class="user-name">User</span>
+                                <span class="user-email">user@example.com</span>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="/settings" class="dropdown-item">
+                                <i class="fas fa-user"></i>
+                                <span>Profile</span>
+                            </a>
+                            <a href="/settings" class="dropdown-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Settings</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item danger" data-logout>
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </a>
                         </div>
-                        <i class="fas fa-shopping-cart fs-1 text-danger border rounded-full danger-bg p-3"></i>
                     </div>
                 </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Welcome Banner -->
+                <div class="welcome-banner" id="welcomeBanner">
+                    <h2>Welcome back!</h2>
+                    <p>Here's an overview of your expenses this month</p>
                 </div>
 
-            <div class="row my-5">
-                <div class="col-lg-12">
-                    <div class="card shadow-sm border-0 rounded-4">
-                        <div class="card-header bg-white border-0 py-3">
-                            <h5 class="mb-0 fw-bold">Recent Transactions</h5>
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon primary">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th class="border-0">Transaction</th>
-                                        <th class="border-0">Date</th>
-                                        <th class="border-0">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Netflix Subscription</td>
-                                        <td>28 Nov, 2025</td>
-                                        <td class="text-danger">-$15.00</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="stat-card-value" id="monthlySalary">$0.00</div>
+                        <div class="stat-card-label">Monthly Salary</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon warning">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
                         </div>
+                        <div class="stat-card-value" id="totalExpenses">$0.00</div>
+                        <div class="stat-card-label">Total Expenses</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon success">
+                                <i class="fas fa-piggy-bank"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" id="remainingBalance">$0.00</div>
+                        <div class="stat-card-label">Remaining Balance</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon info">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" id="transactionCount">0</div>
+                        <div class="stat-card-label">Transactions</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <a href="/add-expense" class="quick-action-btn primary">
+                        <i class="fas fa-plus"></i>
+                        Add Expense
+                    </a>
+                    <a href="/cards" class="quick-action-btn">
+                        <i class="fas fa-credit-card"></i>
+                        Add Card
+                    </a>
+                    <a href="/reports" class="quick-action-btn">
+                        <i class="fas fa-chart-bar"></i>
+                        View Reports
+                    </a>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <h3>Monthly Spending</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <h3>Expense Breakdown</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="transactions-card">
+                    <div class="transactions-header">
+                        <h3>Recent Transactions</h3>
+                        <a href="/reports" class="btn btn-sm btn-secondary">View All</a>
+                    </div>
+                    <div id="recentTransactions">
+                        <!-- Transactions will be loaded here -->
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    var el = document.getElementById("wrapper");
-    var toggleButton = document.getElementById("menu-toggle");
-    toggleButton.onclick = function () {
-        el.classList.toggle("toggled");
-    };
-</script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script>
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    </script>
 </body>
 </html>

@@ -1,53 +1,94 @@
-// 1. Initialize State
-let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+// ==================== Standalone Script for Basic Pages ====================
+
+// Initialize State
+let expenses = JSON.parse(localStorage. getItem('expenses')) || [];
 let expenseChart = null;
 
 // Set default date to today
-document.getElementById('date').valueAsDate = new Date();
-document.getElementById('current-date').innerText = new Date().toDateString();
+document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('date');
+    if (dateInput) {
+        dateInput.valueAsDate = new Date();
+    }
+    
+    const currentDateEl = document.getElementById('current-date');
+    if (currentDateEl) {
+        currentDateEl.innerText = new Date(). toDateString();
+    }
+    
+    // Initialize UI
+    updateUI();
+    
+    // Setup form
+    setupForm();
+});
 
-// 2. DOM Elements
-const form = document.getElementById('expense-form');
-const list = document.getElementById('transaction-list');
-const monthTotalEl = document.getElementById('month-total');
-const yearTotalEl = document.getElementById('year-total');
-const totalCountEl = document.getElementById('total-count');
+// Setup Form
+function setupForm() {
+    const form = document.getElementById('expense-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        addExpense();
+    });
+}
 
-// 3. Add Expense Function
-form.addEventListener('submit', (e) => {
-    e.preventDefault();
-
+// Add Expense Function
+function addExpense() {
+    const cardSelect = document.getElementById('card-select');
+    const amountInput = document. getElementById('amount');
+    const categoryInput = document.getElementById('category');
+    const dateInput = document.getElementById('date');
+    
+    if (!amountInput || !categoryInput || !dateInput) return;
+    
     const newExpense = {
         id: Date.now(),
-        card: document.getElementById('card-select').value,
-        amount: parseFloat(document.getElementById('amount').value),
-        category: document.getElementById('category').value,
-        date: document.getElementById('date').value
+        card: cardSelect ?  cardSelect.value : 'Cash',
+        amount: parseFloat(amountInput.value),
+        category: categoryInput.value,
+        date: dateInput.value
     };
-
+    
+    if (isNaN(newExpense.amount) || newExpense. amount <= 0) {
+        showNotification('Please enter a valid amount', 'error');
+        return;
+    }
+    
     expenses.push(newExpense);
     saveData();
     updateUI();
-    form.reset();
-    document.getElementById('date').valueAsDate = new Date(); // Reset date
-});
+    
+    // Reset form
+    const form = document.getElementById('expense-form');
+    if (form) {
+        form.reset();
+        dateInput.valueAsDate = new Date();
+    }
+    
+    showNotification('Expense added successfully!', 'success');
+}
 
-// 4. Save to LocalStorage
+// Save to LocalStorage
 function saveData() {
     localStorage.setItem('expenses', JSON.stringify(expenses));
 }
 
-// 5. Delete Expense
+// Delete Expense
 function deleteExpense(id) {
+    if (!confirm('Are you sure you want to delete this expense?')) return;
+    
     expenses = expenses.filter(expense => expense.id !== id);
     saveData();
     updateUI();
+    showNotification('Expense deleted! ', 'success');
 }
 
-// 6. Calculate Totals (Monthly & Yearly)
+// Calculate Totals
 function calculateTotals() {
     const now = new Date();
-    const currentMonth = now.getMonth(); // 0-11
+    const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
     let monthTotal = 0;
@@ -56,27 +97,30 @@ function calculateTotals() {
     expenses.forEach(expense => {
         const expenseDate = new Date(expense.date);
         
-        // Year Check
         if (expenseDate.getFullYear() === currentYear) {
             yearTotal += expense.amount;
             
-            // Month Check (only if year matches)
-            // Note: getMonth() returns 0 for Jan, 1 for Feb, etc.
-            // We use the timezone offset logic or simple string matching to be precise
             if (expenseDate.getMonth() === currentMonth) {
                 monthTotal += expense.amount;
             }
         }
     });
 
-    monthTotalEl.innerText = `$${monthTotal.toFixed(2)}`;
-    yearTotalEl.innerText = `$${yearTotal.toFixed(2)}`;
-    totalCountEl.innerText = expenses.length;
+    const monthTotalEl = document.getElementById('month-total');
+    const yearTotalEl = document.getElementById('year-total');
+    const totalCountEl = document.getElementById('total-count');
+    
+    if (monthTotalEl) monthTotalEl.innerText = `$${monthTotal. toFixed(2)}`;
+    if (yearTotalEl) yearTotalEl.innerText = `$${yearTotal.toFixed(2)}`;
+    if (totalCountEl) totalCountEl. innerText = expenses. length;
 }
 
-// 7. Update Chart
+// Update Chart
 function updateChart() {
-    const ctx = document.getElementById('expenseChart').getContext('2d');
+    const canvas = document.getElementById('expenseChart');
+    if (!canvas) return;
+    
+    const ctx = canvas. getContext('2d');
     
     // Group amounts by category
     const categories = {};
@@ -105,44 +149,89 @@ function updateChart() {
                 label: 'Spending',
                 data: data,
                 backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
+                    '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', 
+                    '#10b981', '#3b82f6', '#ef4444', '#84cc16'
                 ],
-                borderWidth: 1
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverOffset: 15
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            animation: {
+                duration: 1500,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                }
+            },
+            cutout: '60%'
         }
     });
 }
 
-// 8. Render List
+// Render List
 function renderList() {
+    const list = document.getElementById('transaction-list');
+    if (!list) return;
+    
     list.innerHTML = '';
     
+    if (expenses.length === 0) {
+        list.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 3rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                    <h3>No expenses yet</h3>
+                    <p style="color: #64748b;">Start adding your expenses to track them here</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
     // Sort by date (newest first)
-    const sortedExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sortedExpenses = [...expenses].sort((a, b) => new Date(b. date) - new Date(a.date));
 
-    sortedExpenses.forEach(expense => {
+    sortedExpenses.forEach((expense, index) => {
         const row = document.createElement('tr');
+        row.className = 'animate-fadeInUp';
+        row.style.animationDelay = `${index * 0.05}s`;
         row.innerHTML = `
             <td>${expense.date}</td>
-            <td>${expense.category}</td>
+            <td><span class="badge badge-primary">${expense.category}</span></td>
             <td>${expense.card}</td>
-            <td>$${expense.amount.toFixed(2)}</td>
-            <td><button class="delete-btn" onclick="deleteExpense(${expense.id})"><i class="fas fa-trash"></i></button></td>
+            <td style="font-weight: 700; color: #ef4444;">$${expense.amount.toFixed(2)}</td>
+            <td>
+                <button class="btn btn-sm btn-danger" onclick="deleteExpense(${expense.id})">
+                    🗑️ Delete
+                </button>
+            </td>
         `;
         list.appendChild(row);
     });
 }
 
-// 9. Master UI Update
+// Master UI Update
 function updateUI() {
     calculateTotals();
     renderList();
     updateChart();
 }
 
-// Initial Call
-updateUI();
+// Show Notification
+function showNotification(message, type = 'info') {
+    if (typeof showAlert === 'function') {
+        showAlert(message, type === 'error' ?  'danger' : type);
+    } else {
+        alert(message);
+    }
+}

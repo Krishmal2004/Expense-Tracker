@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadDashboardData();
     await loadRecentTransactions();
     await loadNotificationCount();
+    
+    // Add staggered animation to stat cards
+    animateStatCards();
 });
 
 // ==================== Load Dashboard Data ====================
@@ -29,37 +32,75 @@ async function loadDashboardData() {
         renderCategoryChart();
         
     } catch (error) {
-        console.error('Error loading dashboard data:', error);
+        console. error('Error loading dashboard data:', error);
         showAlert('Failed to load dashboard data', 'danger');
     }
+}
+
+// ==================== Animate Stat Cards ====================
+
+function animateStatCards() {
+    const statCards = document. querySelectorAll('. stat-card');
+    statCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card. style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            card. style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            card.style.opacity = '1';
+            card. style.transform = 'translateY(0)';
+        }, 100 + (index * 100));
+    });
 }
 
 // ==================== Update Summary Cards ====================
 
 function updateSummaryCards() {
-    // Monthly Salary
+    // Monthly Salary with animation
     const salaryElement = document.getElementById('monthly-salary');
     if (salaryElement) {
-        salaryElement.textContent = formatCurrency(summaryData.monthly_salary || 0);
+        animateValue(salaryElement, 0, summaryData.monthly_salary || 0, 1000);
     }
     
     // Total Expenses
     const expensesElement = document.getElementById('total-expenses');
     if (expensesElement) {
-        expensesElement.textContent = formatCurrency(summaryData.total_expenses || 0);
+        animateValue(expensesElement, 0, summaryData.total_expenses || 0, 1000);
     }
     
     // Remaining Balance
     const balanceElement = document.getElementById('remaining-balance');
     if (balanceElement) {
-        balanceElement.textContent = formatCurrency(summaryData.remaining_balance || 0);
+        animateValue(balanceElement, 0, summaryData.remaining_balance || 0, 1000);
     }
     
     // Total Bank Balance
-    const bankBalanceElement = document.getElementById('total-balance');
+    const bankBalanceElement = document. getElementById('total-balance');
     if (bankBalanceElement) {
-        bankBalanceElement.textContent = formatCurrency(summaryData.total_balance || 0);
+        animateValue(bankBalanceElement, 0, summaryData.total_balance || 0, 1000);
     }
+}
+
+// Animate number value
+function animateValue(element, start, end, duration) {
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const current = start + (end - start) * easeOut;
+        
+        element.textContent = formatCurrency(current);
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    requestAnimationFrame(update);
 }
 
 // ==================== Load Recent Transactions ====================
@@ -69,7 +110,7 @@ async function loadRecentTransactions() {
         const expenses = await apiRequest('/api/expenses? limit=5');
         renderRecentTransactions(expenses);
     } catch (error) {
-        console. error('Error loading recent transactions:', error);
+        console.error('Error loading recent transactions:', error);
     }
 }
 
@@ -89,14 +130,14 @@ function renderRecentTransactions(expenses) {
         return;
     }
     
-    container.innerHTML = expenses.map(expense => `
-        <div class="transaction-item">
+    container.innerHTML = expenses.map((expense, index) => `
+        <div class="transaction-item" style="animation-delay: ${index * 0.1}s">
             <div class="transaction-info">
                 <div class="transaction-icon">
-                    ${getCategoryIcon(expense.category)}
+                    ${getCategoryIcon(expense. category)}
                 </div>
                 <div class="transaction-details">
-                    <h4>${expense. description}</h4>
+                    <h4>${expense.description}</h4>
                     <p>${formatDate(expense.expense_date)} • ${expense.category}</p>
                 </div>
             </div>
@@ -104,7 +145,7 @@ function renderRecentTransactions(expenses) {
                 <p>-${formatCurrency(expense.amount)}</p>
             </div>
         </div>
-    `).join('');
+    `). join('');
 }
 
 // ==================== Load Notification Count ====================
@@ -112,17 +153,17 @@ function renderRecentTransactions(expenses) {
 async function loadNotificationCount() {
     try {
         const notifications = await apiRequest('/api/notifications');
-        const unreadCount = notifications.filter(n => !n.is_read).length;
+        const unreadCount = notifications. filter(n => ! n.is_read).length;
         
-        const badge = document.querySelector('.notification-badge');
-        if (badge) {
+        const badges = document.querySelectorAll('.notification-badge');
+        badges.forEach(badge => {
             if (unreadCount > 0) {
                 badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                badge.style.display = 'flex';
+                badge. style.display = 'flex';
             } else {
                 badge.style.display = 'none';
             }
-        }
+        });
     } catch (error) {
         console.error('Error loading notifications:', error);
     }
@@ -137,12 +178,12 @@ function renderMonthlyChart() {
     const ctx = document.getElementById('monthly-chart');
     if (!ctx) return;
     
-    const labels = monthlyData.map(item => {
-        const date = new Date(item.month + '-01');
-        return date. toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const labels = monthlyData. map(item => {
+        const date = new Date(item. month + '-01');
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     });
     
-    const data = monthlyData.map(item => item. total);
+    const data = monthlyData.map(item => item.total);
     
     if (monthlyChart) {
         monthlyChart.destroy();
@@ -156,19 +197,35 @@ function renderMonthlyChart() {
                 label: 'Monthly Expenses',
                 data: data,
                 borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                backgroundColor: 'rgba(99, 102, 241, 0. 1)',
+                borderWidth: 3,
                 tension: 0.4,
-                fill: true
+                fill: true,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#6366f1',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 1500,
+                easing: 'easeOutQuart'
+            },
             plugins: {
                 legend: {
                     display: false
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: false,
                     callbacks: {
                         label: function(context) {
                             return 'Expenses: ' + formatCurrency(context.parsed.y);
@@ -177,9 +234,27 @@ function renderMonthlyChart() {
                 }
             },
             scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 11
+                        }
+                    }
+                },
                 y: {
                     beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
                     ticks: {
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 11
+                        },
                         callback: function(value) {
                             return '$' + value.toLocaleString();
                         }
@@ -192,13 +267,14 @@ function renderMonthlyChart() {
 
 function renderCategoryChart() {
     const ctx = document.getElementById('category-chart');
-    if (! ctx) return;
+    if (!ctx) return;
     
-    const labels = categoryData.map(item => item.category);
+    const labels = categoryData. map(item => item.category);
     const data = categoryData.map(item => item.total);
     const colors = [
         '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', 
-        '#10b981', '#3b82f6', '#ef4444', '#84cc16'
+        '#10b981', '#3b82f6', '#ef4444', '#84cc16',
+        '#06b6d4', '#f97316'
     ];
     
     if (categoryChart) {
@@ -212,29 +288,51 @@ function renderCategoryChart() {
             datasets: [{
                 data: data,
                 backgroundColor: colors,
-                borderWidth: 2,
-                borderColor: '#fff'
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverOffset: 15
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 1500,
+                easing: 'easeOutQuart',
+                animateRotate: true,
+                animateScale: true
+            },
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 11
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    cornerRadius: 8,
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
-                            const value = formatCurrency(context.parsed);
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const value = formatCurrency(context. parsed);
+                            const total = context.dataset.data. reduce((a, b) => a + b, 0);
                             const percentage = ((context.parsed / total) * 100).toFixed(1);
                             return `${label}: ${value} (${percentage}%)`;
                         }
                     }
                 }
-            }
+            },
+            cutout: '65%'
         }
     });
 }

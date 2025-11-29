@@ -1,6 +1,6 @@
 // ==================== Initialize Expenses Page ====================
 
-document.addEventListener('DOMContentLoaded', async () => {
+document. addEventListener('DOMContentLoaded', async () => {
     await loadExpenses();
     await loadCardsForDropdown();
     setupExpenseForm();
@@ -15,14 +15,14 @@ async function loadExpenses(filters = {}) {
     try {
         let url = '/api/expenses? ';
         if (filters.start_date) url += `start_date=${filters.start_date}&`;
-        if (filters.end_date) url += `end_date=${filters.end_date}&`;
+        if (filters.end_date) url += `end_date=${filters. end_date}&`;
         if (filters.category) url += `category=${filters. category}&`;
         
         currentExpenses = await apiRequest(url);
         renderExpenses(currentExpenses);
         updateExpenseSummary(currentExpenses);
     } catch (error) {
-        console. error('Error loading expenses:', error);
+        console.error('Error loading expenses:', error);
         showAlert('Failed to load expenses', 'danger');
     }
 }
@@ -49,42 +49,50 @@ function renderExpenses(expenses) {
         return;
     }
     
-    tbody.innerHTML = expenses. map(expense => `
-        <tr>
+    tbody.innerHTML = expenses.map((expense, index) => `
+        <tr class="animate-fadeInUp" style="animation-delay: ${index * 0.05}s">
             <td>${formatDate(expense.expense_date)}</td>
             <td>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span>${getCategoryIcon(expense.category)}</span>
-                    ${expense.description}
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 1.25rem;">${getCategoryIcon(expense.category)}</span>
+                    <span>${expense.description}</span>
                 </div>
             </td>
             <td><span class="badge badge-primary">${expense.category}</span></td>
             <td>${expense.card_type || 'Cash'}</td>
-            <td class="fw-bold text-danger">${formatCurrency(expense. amount)}</td>
+            <td class="fw-bold text-danger">${formatCurrency(expense.amount)}</td>
             <td>
-                <button class="btn btn-sm btn-warning" onclick="editExpense(${expense.id})">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteExpense(${expense.id})">Delete</button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-sm btn-warning" onclick="editExpense(${expense.id})">
+                        ✏️ Edit
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteExpense(${expense.id})">
+                        🗑️ Delete
+                    </button>
+                </div>
             </td>
         </tr>
-    `).join('');
+    `). join('');
 }
 
 // ==================== Update Expense Summary ====================
 
 function updateExpenseSummary(expenses) {
     const total = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
-    const summaryElement = document.getElementById('expense-summary');
+    const summaryElement = document. getElementById('expense-summary');
     
     if (summaryElement) {
-        summaryElement.innerHTML = `
-            <div class="card">
-                <div class="d-flex justify-between align-center">
-                    <div>
+        summaryElement. innerHTML = `
+            <div class="stat-card animate-bounceIn">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="stat-info">
                         <h3>Total Expenses</h3>
-                        <p class="text-secondary">${expenses.length} transactions</p>
+                        <p class="text-secondary" style="-webkit-text-fill-color: var(--gray-500);">${expenses.length} transactions</p>
                     </div>
-                    <div>
-                        <h2 class="text-danger">${formatCurrency(total)}</h2>
+                    <div style="text-align: right;">
+                        <p style="font-size: 2rem; font-weight: 800; color: var(--danger); margin: 0;">
+                            ${formatCurrency(total)}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -100,13 +108,13 @@ async function loadCardsForDropdown() {
         const select = document.getElementById('expense-card');
         
         if (select && cards.length > 0) {
-            select.innerHTML = '<option value="">Select Card (Optional)</option>' +
+            select.innerHTML = '<option value="">Cash / Other</option>' +
                 cards.map(card => `
-                    <option value="${card. id}">${card.card_type} - ${card.card_number}</option>
+                    <option value="${card.id}">${card.card_type} - ${card.card_number}</option>
                 `).join('');
         }
     } catch (error) {
-        console.error('Error loading cards:', error);
+        console. error('Error loading cards:', error);
     }
 }
 
@@ -137,15 +145,15 @@ async function addExpense() {
     const submitBtn = form.querySelector('button[type="submit"]');
     
     const expenseData = {
-        description: document.getElementById('expense-description').value,
+        description: document.getElementById('expense-description').value. trim(),
         amount: parseFloat(document.getElementById('expense-amount').value),
-        category: document.getElementById('expense-category').value,
-        expense_date: document.getElementById('expense-date').value,
+        category: document. getElementById('expense-category').value,
+        expense_date: document. getElementById('expense-date').value,
         card_id: document.getElementById('expense-card').value || null
     };
     
     // Validation
-    if (!expenseData.description || !expenseData.amount || !expenseData.category || !expenseData.expense_date) {
+    if (!expenseData. description || !expenseData.amount || !expenseData. category || !expenseData. expense_date) {
         showAlert('Please fill in all required fields', 'danger');
         return;
     }
@@ -163,9 +171,10 @@ async function addExpense() {
             body: JSON.stringify(expenseData)
         });
         
-        showAlert('Expense added successfully', 'success');
+        showAlert('Expense added successfully!  🎉', 'success');
         closeModal('add-expense-modal');
         form.reset();
+        document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
         await loadExpenses();
         
         // Reload notification count
@@ -193,16 +202,16 @@ function editExpense(expenseId) {
     document.getElementById('expense-description').value = expense.description;
     document.getElementById('expense-amount').value = expense.amount;
     document.getElementById('expense-category').value = expense.category;
-    document.getElementById('expense-date').value = expense.expense_date;
+    document.getElementById('expense-date'). value = expense.expense_date;
     
     // Change modal title and button
     document.querySelector('#add-expense-modal . modal-title').textContent = 'Edit Expense';
     const submitBtn = document.querySelector('#add-expense-form button[type="submit"]');
-    submitBtn.textContent = 'Update Expense';
+    submitBtn.textContent = '💾 Update Expense';
     
     // Change form submission
     const form = document.getElementById('add-expense-form');
-    form. onsubmit = async (e) => {
+    form.onsubmit = async (e) => {
         e.preventDefault();
         await updateExpense();
     };
@@ -212,10 +221,10 @@ function editExpense(expenseId) {
 
 async function updateExpense() {
     const form = document.getElementById('add-expense-form');
-    const submitBtn = form.querySelector('button[type="submit"]');
+    const submitBtn = form. querySelector('button[type="submit"]');
     
     const expenseData = {
-        description: document.getElementById('expense-description').value,
+        description: document.getElementById('expense-description').value.trim(),
         amount: parseFloat(document.getElementById('expense-amount').value),
         category: document.getElementById('expense-category').value,
         expense_date: document.getElementById('expense-date').value,
@@ -230,7 +239,7 @@ async function updateExpense() {
             body: JSON.stringify(expenseData)
         });
         
-        showAlert('Expense updated successfully', 'success');
+        showAlert('Expense updated successfully! ✅', 'success');
         closeModal('add-expense-modal');
         resetExpenseForm();
         await loadExpenses();
@@ -243,23 +252,24 @@ async function updateExpense() {
 
 function resetExpenseForm() {
     const form = document.getElementById('add-expense-form');
-    form. reset();
+    form.reset();
     form.onsubmit = async (e) => {
         e.preventDefault();
         await addExpense();
     };
     
-    document.querySelector('#add-expense-modal .modal-title').textContent = 'Add Expense';
+    document.querySelector('#add-expense-modal . modal-title').textContent = 'Add New Expense';
     const submitBtn = form.querySelector('button[type="submit"]');
-    submitBtn.textContent = 'Add Expense';
+    submitBtn. textContent = 'Add Expense';
     
+    document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
     editingExpenseId = null;
 }
 
 // ==================== Delete Expense ====================
 
 async function deleteExpense(expenseId) {
-    if (!confirm('Are you sure you want to delete this expense?')) {
+    if (! confirm('Are you sure you want to delete this expense?')) {
         return;
     }
     
@@ -268,7 +278,7 @@ async function deleteExpense(expenseId) {
             method: 'DELETE'
         });
         
-        showAlert('Expense deleted successfully', 'success');
+        showAlert('Expense deleted successfully! 🗑️', 'success');
         await loadExpenses();
     } catch (error) {
         showAlert(error. message, 'danger');
@@ -285,18 +295,19 @@ function setupFilters() {
     
     const resetBtn = document.getElementById('reset-filters-btn');
     if (resetBtn) {
-        resetBtn.addEventListener('click', resetFilters);
+        resetBtn. addEventListener('click', resetFilters);
     }
 }
 
 function applyFilters() {
     const filters = {
         start_date: document.getElementById('filter-start-date')?.value,
-        end_date: document.getElementById('filter-end-date')?.value,
-        category: document.getElementById('filter-category')?.value
+        end_date: document.getElementById('filter-end-date')?. value,
+        category: document.getElementById('filter-category')?. value
     };
     
     loadExpenses(filters);
+    showAlert('Filters applied! 🔍', 'info');
 }
 
 function resetFilters() {
@@ -304,4 +315,5 @@ function resetFilters() {
     document.getElementById('filter-end-date').value = '';
     document.getElementById('filter-category').value = '';
     loadExpenses();
+    showAlert('Filters reset! 🔄', 'info');
 }
